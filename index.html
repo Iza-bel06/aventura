@@ -2,20 +2,23 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Una pequeña aventura</title>
+    <title>Aventura en la Selva Jurásica 🦖</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f4f9; color: #333; text-align: center; padding: 50px; }
-        .card { background: white; padding: 30px; border-radius: 10px; max-width: 400px; margin: auto; box-shadow: 0px 4px 10px rgba(0,0,0,0.1); }
-        button { background: #ff4757; color: white; border: none; padding: 10px 20px; margin: 10px; border-radius: 5px; cursor: pointer; font-size: 16px; }
-        button:hover { background: #ff6b81; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1b4d3e; color: #fff; text-align: center; padding: 30px; }
+        .card { background: #2c6b56; padding: 30px; border-radius: 15px; max-width: 450px; margin: auto; box-shadow: 0px 8px 20px rgba(0,0,0,0.4); border: 2px solid #52b788; }
+        button { background: #e76f51; color: white; border: none; padding: 12px 20px; margin: 10px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; width: 80%; transition: 0.2s; }
+        button:hover { background: #f4a261; transform: scale(1.05); }
+        h2 { color: #ffd166; }
+        .emoji { font-size: 40px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
     <div class="card" id="game">
-        <h2 id="story">Estás en casa y de repente recibes un mensaje misterioso de tu novia... ¿Qué haces?</h2>
+        <div class="emoji" id="emoji-icon">🧭</div>
+        <h2 id="story">¡Explorador! Estás en medio de una selva densa y peligrosa. Tu misión secreta es atravesarla para llegar a los brazos de tu novia. De repente, escuchas un rugido cerca... ¿Qué haces?</h2>
         <div id="choices">
-            <button onclick="changeStage(1)">Responder de inmediato</button>
-            <button onclick="changeStage(2)">Ignorarlo por misterio</button>
+            <button onclick="changeStage(1)">Correr hacia el río 🌊</button>
+            <button onclick="changeStage(2)">Esconderte detrás de unos arbustos 🌿</button>
         </div>
     </div>
 
@@ -23,19 +26,30 @@
         function changeStage(stage) {
             const story = document.getElementById("story");
             const choices = document.getElementById("choices");
+            const emoji = document.getElementById("emoji-icon");
             
             if(stage === 1) {
-                story.innerText = "¡Bien hecho! El mensaje decía que hay una cita sorpresa esperándolo. ¿A dónde van?";
+                emoji.innerText = "🦖";
+                story.innerText = "¡Oh no! Al llegar al río te encuentras cara a cara con un Velociraptor hambriento. ¿Cómo escapas?";
+                choices.choices = '';
                 choices.innerHTML = `
-                    <button onclick="changeStage(3)">Por unos tacos 🌮</button>
-                    <button onclick="changeStage(4)">Al cine a ver películas 🍿</button>
+                    <button onclick="changeStage(3)">Lanzarle una piedra para distraerlo 🪨</button>
+                    <button onclick="changeStage(4)">Cruzar nadando a toda velocidad 🏊‍♂️</button>
                 `;
             } else if(stage === 2) {
-                story.innerText = "Error catastrófico: Te aburriste muy rápido y fuiste a buscarla. ¡Ganaste su amor igual!";
-                choices.innerHTML = `<h3>¡Fin de la aventura! Te amo ❤️</h3>`;
-            } else if(stage === 3 || stage === 4) {
-                story.innerText = "¡Elección perfecta! Prepárate, pasa por mí a las 7:00 PM. 🎉";
-                choices.innerHTML = `<h3>¡Misión cumplida! Te amo ❤️</h3>`;
+                emoji.innerText = "🦕";
+                story.innerText = "Los arbustos se mueven... ¡Es un Brachiosaurus amigable que te da una pista secreta del camino seguro! Sigues avanzando con éxito.";
+                choices.innerHTML = `
+                    <button onclick="changeStage(5)">Seguir el mapa hacia la base secreta 🗺️</button>
+                `;
+            } else if(stage === 3 || stage === 5) {
+                emoji.innerText = "❤️";
+                story.innerText = "¡Lo lograste! Esquivaste todos los peligros de la selva y llegaste a la meta. Tu novia te recibe con un gran abrazo y una sonrisa. ¡Misión cumplida!";
+                choices.innerHTML = `<h3>¡Fin de la aventura! Te amo muchísimo 🎉</h3>`;
+            } else if(stage === 4) {
+                emoji.innerText = "❌";
+                story.innerText = "El agua tenía corrientes muy fuertes y el dinosaurio te alcanzó. ¡Fin del juego (vuelve a intentarlo recargando la página)! 🦖💔";
+                choices.innerHTML = `<button onclick="location.reload()">Reintentar misión 🔄</button>`;
             }
         }
     </script>
