@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Una pequeña aventura</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f9; color: #333; text-align: center; padding: 50px; }
+        .card { background: white; padding: 30px; border-radius: 10px; max-width: 400px; margin: auto; box-shadow: 0px 4px 10px rgba(0,0,0,0.1); }
+        button { background: #ff4757; color: white; border: none; padding: 10px 20px; margin: 10px; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #ff6b81; }
+    </style>
+</head>
+<body>
+    <div class="card" id="game">
+        <h2 id="story">Estás en casa y de repente recibes un mensaje misterioso de tu novia... ¿Qué haces?</h2>
+        <div id="choices">
+            <button onclick="changeStage(1)">Responder de inmediato</button>
+            <button onclick="changeStage(2)">Ignorarlo por misterio</button>
+        </div>
+    </div>
+
+    <script>
+        function changeStage(stage) {
+            const story = document.getElementById("story");
+            const choices = document.getElementById("choices");
+            
+            if(stage === 1) {
+                story.innerText = "¡Bien hecho! El mensaje decía que hay una cita sorpresa esperándolo. ¿A dónde van?";
+                choices.innerHTML = `
+                    <button onclick="changeStage(3)">Por unos tacos 🌮</button>
+                    <button onclick="changeStage(4)">Al cine a ver películas 🍿</button>
+                `;
+            } else if(stage === 2) {
+                story.innerText = "Error catastrófico: Te aburriste muy rápido y fuiste a buscarla. ¡Ganaste su amor igual!";
+                choices.innerHTML = `<h3>¡Fin de la aventura! Te amo ❤️</h3>`;
+            } else if(stage === 3 || stage === 4) {
+                story.innerText = "¡Elección perfecta! Prepárate, pasa por mí a las 7:00 PM. 🎉";
+                choices.innerHTML = `<h3>¡Misión cumplida! Te amo ❤️</h3>`;
+            }
+        }
+    </script>
+</body>
+</html>
