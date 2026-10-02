@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RestoPOS - Control de Mesas y Ventas</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f8f9fa; margin: 0; padding: 20px; color: #333; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h1 { color: #e63946; margin: 0; font-size: 22px; }
+        .logout-btn { background: #dc3545; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-size: 14px; font-weight: bold; }
+        
+        .dashboard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 25px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align: center; }
+        .card h3 { margin: 0 0 10px 0; color: #6c757d; font-size: 14px; }
+        .card .number { font-size: 24px; font-weight: bold; color: #2b2d42; }
+
+        .section-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #1d3557; }
+        
+        .mesas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .mesa-card { background: white; border: 2px solid #2a9d8f; border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; transition: 0.2s; }
+        .mesa-card:hover { background: #e9f5f3; }
+        .mesa-card h4 { margin: 0 0 5px 0; color: #2a9d8f; }
+        .mesa-card span { font-size: 12px; color: #6c757d; }
+
+        .pedidos-form { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .form-row { display: flex; gap: 15px; margin-bottom: 15px; }
+        .form-group { flex: 1; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
+        input, select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        .btn-primary { background: #2a9d8f; color: white; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .btn-primary:hover { background: #21867a; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🍽️ RestoPOS - Panel de Control</h1>
+        <div>
+            <span>Hola, <b>{{ current_user.username }}</b></span> | 
+            <a href="/logout" class="logout-btn">Cerrar Sesión</a>
+        </div>
+    </div>
+
+    <!-- Panel de Recaudación Estilo Inzag -->
+    <div class="dashboard-grid">
+        <div class="card">
+            <h3>Recaudación Total del Mes</h3>
+            <div class="number" id="lbl-recaudado">S/ 0.00</div>
+        </div>
+        <div class="card">
+            <h3>Total de Órdenes</h3>
+            <div class="number" id="lbl-pedidos">0</div>
+        </div>
+        <div class="card">
+            <h3>Mesas Activas</h3>
+            <div class="number">6 Mesas</div>
+        </div>
+    </div>
+
+    <div class="section-title">🪑 Gestión de Mesas (Salón)</div>
+    <div class="mesas-grid">
+        <div class="mesa-card" onclick="seleccionarMesa('Mesa 01')">
+            <h4>Mesa 01</h4>
+            <span>Libre</span>
+        </div>
+        <div class="mesa-card" onclick="seleccionarMesa('Mesa 02')">
+            <h4>Mesa 02</h4>
+            <span>Libre</span>
+        </div>
+        <div class="mesa-card" onclick="seleccionarMesa('Mesa 03')">
+            <h4>Mesa 03</h4>
+            <span>Libre</span>
+        </div>
+        <div class="mesa-card" onclick="seleccionarMesa('Mesa 04')">
+            <h4>Mesa 04</h4>
+            <span>Libre</span>
+        </div>
+        <div class="mesa-card" onclick="seleccionarMesa('Mesa 05')">
+            <h4>Mesa 05</h4>
+            <span>Libre</span>
+        </div>
+        <div class="mesa-card" onclick="seleccionarMesa('Mesa 06')">
+            <h4>Mesa 06</h4>
+            <span>Libre</span>
+        </div>
+    </div>
+
+    <!-- Registro Rápido de Pedido / Venta -->
+    <div class="pedidos-form">
+        <div class="section-title">📝 Registrar Venta / Pedido Rápido</div>
+        <form id="ventaForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Seleccionar Mesa / Destino</label>
+                    <input type="text" id="mesa_destino" placeholder="Ej. Mesa 01 o Delivery" required>
+                </div>
+                <div class="form-group">
+                    <label>Plato / Producto</label>
+                    <input type="text" id="producto" placeholder="Ej. Pollo a la Brasa / Chicha Morada" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Importe Total (S/)</label>
+                    <input type="number" step="0.01" id="total_importe" placeholder="0.00" required>
+                </div>
+                <div class="form-group" style="display: flex; align-items: flex-end;">
+                    <button type="submit" class="btn-primary" style="width: 100%;">Cobrar y Registrar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+<script>
+    function seleccionarMesa(nombreMesa) {
+        document.getElementById('mesa_destino').value = nombreMesa;
+    }
+
+    async function cargarReporte() {
+        try {
+            const res = await fetch('/api/reporte-mes');
+            const data = await res.json();
+            document.getElementById('lbl-recaudado').innerText = 'S/ ' + data.total_recaudado.toFixed(2);
+            document.getElementById('lbl-pedidos').innerText = data.total_pedidos;
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    document.getElementById('ventaForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const payload = {
+            mesa: document.getElementById('mesa_destino').value,
+            producto: document.getElementById('producto').value,
+            total: parseFloat(document.getElementById('total_importe').value) || 0
+        };
+
+        const res = await fetch('/api/guardar-pedido', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+
+        if(res.ok) {
+            alert('¡Venta registrada con éxito!');
+            document.getElementById('ventaForm').reset();
+            cargarReporte();
+        } else {
+            alert('Error al registrar el pedido.');
+        }
+    });
+
+    // Cargar reporte al iniciar
+    cargarReporte();
+</script>
+
+</body>
+</html>
