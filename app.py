@@ -55,14 +55,12 @@ def load_user(user_id):
 @app.route('/')
 @login_required
 def index():
-    # Calcular datos dinámicos para el Dashboard (Paso 2)
+    # Calcular datos dinámicos para el Dashboard
     total_ordenes = Pedido.query.count()
     mesas_activas = Mesa.query.filter_by(estado='Ocupado').count()
-    
-    # Calcular recaudación total sumando los pedidos pagados o registrados
     recaudacion_total = db.session.query(db.func.sum(Pedido.total)).scalar() or 0.0
     
-    # Obtener listado de mesas para la sección de salón
+    # Obtener listado de mesas
     mesas = Mesa.query.all()
     
     return render_template('index.html', 
@@ -70,6 +68,17 @@ def index():
                            mesas_activas=mesas_activas,
                            recaudacion_total=recaudacion_total,
                            mesas=mesas)
+
+@app.route('/agregar-mesa', methods=['POST'])
+@login_required
+def agregar_mesa():
+    numero = request.form.get('numero')
+    salon = request.form.get('salon', 'Salón')
+    if numero:
+        nueva_mesa = Mesa(numero=numero, salon=salon, estado='Libre')
+        db.session.add(nueva_mesa)
+        db.session.commit()
+    return redirect(url_for('index'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
