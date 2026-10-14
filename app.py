@@ -25,7 +25,7 @@ class Mesa(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     numero = db.Column(db.String(50), unique=True, nullable=False)
     estado = db.Column(db.String(20), default='Libre') # Libre, Ocupado
-    salon = db.Column(db.String(50), default='Salón Principal') # Salón, Terraza, etc.
+    salon = db.Column(db.String(50), default='Salón Principal')
 
 class Producto(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -55,21 +55,23 @@ def load_user(user_id):
 @app.route('/')
 @login_required
 def index():
-    # Calcular datos dinámicos para el Dashboard
-    total_ordenes = Pedido.query.count()
+    total_ordenes = Pedido.query.filter_by(estado='Pendiente').count()
     mesas_activas = Mesa.query.filter_by(estado='Ocupado').count()
-    recaudacion_total = db.session.query(db.func.sum(Pedido.total)).scalar() or 0.0
+    recaudacion_total = db.session.query(db.func.sum(Pedido.total)).filter_by(estado='Pagado').scalar() or 0.0
     
-    # Obtener listado de mesas y productos
     mesas = Mesa.query.all()
     productos = Producto.query.all()
+    
+    # Diccionario para consultar pedidos pendientes por mesa en la vista
+    pedidos_activos = {p.mesa_id: p for p in Pedido.query.filter_by(estado='Pendiente').all()}
     
     return render_template('index.html', 
                            total_ordenes=total_ordenes,
                            mesas_activas=mesas_activas,
                            recaudacion_total=recaudacion_total,
                            mesas=mesas,
-                           productos=productos)
+                           productos=productos,
+                           pedidos_activos=pedidos_activos)
 
 @app.route('/agregar-mesa', methods=['POST'])
 @login_required
@@ -99,11 +101,31 @@ def agregar_producto():
 def crear_pedido(mesa_id):
     total = float(request.form.get('total', 0))
     if total > 0:
+        # Crear la orden pendiente
         nuevo_pedido = Pedido(mesa_id=mesa_id, total=total, estado='Pendiente')
+        db.session.add(nuevo_pedido)
+        
+        # Cambiar estado de la mesa a Ocupado
         mesa = Mesa.query.get(mesa_id)
         if mesa:
             mesa.estado = 'Ocupado'
-        db.session.add(nuevo_pedido)
+            
+        db.session.commit()
+    return redirect(url_for('index'))
+
+@app.route('/pagar-pedido/<int:mesa_id>', methods=['POST'])
+@login_required
+def pagar_pedido(mesa_id):
+    # Buscar el pedido pendiente de esta mesa
+    pedido = Pedido.query.filter_by(mesa_id=mesa_id, estado='Pendiente').first()
+    if pedido:
+        pedido.estado = 'Pagado'
+        
+        # Liberar la mesa
+        mesa = Mesa.query.get(mesa_id)
+        if mesa:
+            mesa.estado = 'Libre'
+            
         db.session.commit()
     return redirect(url_for('index'))
 
@@ -125,7 +147,6 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
-# Inicializar la base de datos automáticamente al arrancar
 with app.app_context():
     db.create_all()
 
