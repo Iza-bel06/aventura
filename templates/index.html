@@ -17,11 +17,18 @@
         
         .section-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #1d3557; }
         
-        .mesas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-bottom: 30px; }
-        .mesa-card { background: white; border: 2px solid #2a9d8f; border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; transition: 0.2s; }
-        .mesa-card:hover { background: #e9f5f3; }
-        .mesa-card h4 { margin: 0 0 5px 0; color: #2a9d8f; }
-        .mesa-card span { font-size: 12px; color: #6c757d; }
+        .form-container { background: white; padding: 20px; border-radius: 8px; margin-bottom: 25px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .form-container h3 { margin-top: 0; color: #1d3557; font-size: 16px; margin-bottom: 15px; }
+        .form-row { display: flex; gap: 10px; }
+        .form-row input, .form-row select { padding: 10px; border: 1px solid #ccc; border-radius: 4px; flex: 1; font-size: 14px; }
+        .form-row button { background: #2a9d8f; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        .form-row button:hover { background: #21867a; }
+
+        .mesas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .mesa-card { background: white; border: 2px solid #2a9d8f; border-radius: 8px; padding: 15px; text-align: center; transition: 0.2s; }
+        .mesa-card h4 { margin: 0 0 5px 0; color: #2a9d8f; font-size: 16px; }
+        .mesa-card p { margin: 5px 0; font-size: 13px; color: #6c757d; }
+        .mesa-card span { font-size: 12px; background: #e9f5f3; padding: 3px 8px; border-radius: 4px; color: #2a9d8f; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -51,18 +58,33 @@
         </div>
     </div>
 
+    <!-- Formulario para Registrar Nueva Mesa -->
+    <div class="form-container">
+        <h3>➕ Registrar Nueva Mesa</h3>
+        <form action="/agregar-mesa" method="POST" class="form-row">
+            <input type="text" name="numero" placeholder="Ej. Mesa 01" required>
+            <select name="salon">
+                <option value="Salón Principal">Salón Principal</option>
+                <option value="Terraza">Terraza</option>
+                <option value="VIP">VIP</option>
+            </select>
+            <button type="submit">Guardar Mesa</button>
+        </form>
+    </div>
+
     <!-- Gestión de Mesas (Salón) -->
-    <div class="section-title">🪑 Gestión de Mesas (Salón)</div>
+    <div class="section-title">🪑 Distribución de Mesas y Salones</div>
     <div class="mesas-grid">
         {% if mesas %}
             {% for mesa in mesas %}
             <div class="mesa-card">
                 <h4>{{ mesa.numero }}</h4>
-                <span>{{ mesa.estado }}</span>
+                <p>Zona: <strong>{{ mesa.salon }}</strong></p>
+                <span>Estado: {{ mesa.estado }}</span>
             </div>
             {% endfor %}
         {% else %}
-            <p>No hay mesas registradas todavía. (Pronto podrás agregarlas)</p>
+            <p style="grid-column: 1 / -1; color: #6c757d; background: white; padding: 20px; border-radius: 8px; text-align: center;">No hay mesas registradas todavía. ¡Usa el formulario de arriba para agregar la primera!</p>
         {% endif %}
     </div>
 
