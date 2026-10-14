@@ -25,7 +25,7 @@ class Mesa(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     numero = db.Column(db.String(50), unique=True, nullable=False)
     estado = db.Column(db.String(20), default='Libre') # Libre, Ocupado
-    salon = db.Column(db.String(50), default='Salón') # Salón, Terraza, etc.
+    salon = db.Column(db.String(50), default='Salón Principal') # Salón, Terraza, etc.
 
 class Producto(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -60,23 +60,50 @@ def index():
     mesas_activas = Mesa.query.filter_by(estado='Ocupado').count()
     recaudacion_total = db.session.query(db.func.sum(Pedido.total)).scalar() or 0.0
     
-    # Obtener listado de mesas
+    # Obtener listado de mesas y productos
     mesas = Mesa.query.all()
+    productos = Producto.query.all()
     
     return render_template('index.html', 
                            total_ordenes=total_ordenes,
                            mesas_activas=mesas_activas,
                            recaudacion_total=recaudacion_total,
-                           mesas=mesas)
+                           mesas=mesas,
+                           productos=productos)
 
 @app.route('/agregar-mesa', methods=['POST'])
 @login_required
 def agregar_mesa():
     numero = request.form.get('numero')
-    salon = request.form.get('salon', 'Salón')
+    salon = request.form.get('salon', 'Salón Principal')
     if numero:
         nueva_mesa = Mesa(numero=numero, salon=salon, estado='Libre')
         db.session.add(nueva_mesa)
+        db.session.commit()
+    return redirect(url_for('index'))
+
+@app.route('/agregar-producto', methods=['POST'])
+@login_required
+def agregar_producto():
+    nombre = request.form.get('nombre')
+    precio = float(request.form.get('precio', 0))
+    categoria = request.form.get('categoria', 'Platos')
+    if nombre and precio > 0:
+        nuevo_prod = Producto(nombre=nombre, precio=precio, categoria=categoria)
+        db.session.add(nuevo_prod)
+        db.session.commit()
+    return redirect(url_for('index'))
+
+@app.route('/crear-pedido/<int:mesa_id>', methods=['POST'])
+@login_required
+def crear_pedido(mesa_id):
+    total = float(request.form.get('total', 0))
+    if total > 0:
+        nuevo_pedido = Pedido(mesa_id=mesa_id, total=total, estado='Pendiente')
+        mesa = Mesa.query.get(mesa_id)
+        if mesa:
+            mesa.estado = 'Ocupado'
+        db.session.add(nuevo_pedido)
         db.session.commit()
     return redirect(url_for('index'))
 
