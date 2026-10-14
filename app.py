@@ -51,11 +51,25 @@ def load_user(user_id):
             return user
     return None
 
-# --- RUTAS DE LA APLICACIÓN ---
+# --- RUTAS DE LA APLICACIÓN Y DASHBOARD ---
 @app.route('/')
 @login_required
 def index():
-    return render_template('index.html')
+    # Calcular datos dinámicos para el Dashboard (Paso 2)
+    total_ordenes = Pedido.query.count()
+    mesas_activas = Mesa.query.filter_by(estado='Ocupado').count()
+    
+    # Calcular recaudación total sumando los pedidos pagados o registrados
+    recaudacion_total = db.session.query(db.func.sum(Pedido.total)).scalar() or 0.0
+    
+    # Obtener listado de mesas para la sección de salón
+    mesas = Mesa.query.all()
+    
+    return render_template('index.html', 
+                           total_ordenes=total_ordenes,
+                           mesas_activas=mesas_activas,
+                           recaudacion_total=recaudacion_total,
+                           mesas=mesas)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
