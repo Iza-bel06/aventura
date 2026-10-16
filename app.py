@@ -101,11 +101,9 @@ def agregar_producto():
 def crear_pedido(mesa_id):
     total = float(request.form.get('total', 0))
     if total > 0:
-        # Crear la orden pendiente
         nuevo_pedido = Pedido(mesa_id=mesa_id, total=total, estado='Pendiente')
         db.session.add(nuevo_pedido)
         
-        # Cambiar estado de la mesa a Ocupado
         mesa = Mesa.query.get(mesa_id)
         if mesa:
             mesa.estado = 'Ocupado'
@@ -113,15 +111,14 @@ def crear_pedido(mesa_id):
         db.session.commit()
     return redirect(url_for('index'))
 
-@app.route('/pagar-pedido/<int:mesa_id>', methods=['POST'])
+# RUTA CORREGIDA: Acepta GET y POST para evitar el error de método
+@app.route('/pagar-pedido/<int:mesa_id>', methods=['GET', 'POST'])
 @login_required
 def pagar_pedido(mesa_id):
-    # Buscar el pedido pendiente de esta mesa
     pedido = Pedido.query.filter_by(mesa_id=mesa_id, estado='Pendiente').first()
     if pedido:
         pedido.estado = 'Pagado'
         
-        # Liberar la mesa
         mesa = Mesa.query.get(mesa_id)
         if mesa:
             mesa.estado = 'Libre'
