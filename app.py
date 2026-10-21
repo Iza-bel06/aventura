@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
+import json
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'clave_secreta_restaurante'
@@ -37,6 +38,7 @@ class Pedido(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     mesa_id = db.Column(db.Integer, db.ForeignKey('mesa.id'), nullable=False)
     total = db.Column(db.Float, nullable=False)
+    detalle = db.Column(db.Text, default='') # Texto con los productos pedidos
     estado = db.Column(db.String(20), default='Pendiente') # Pendiente, Pagado
 
 # Inicializar Login Manager
@@ -62,7 +64,6 @@ def index():
     mesas = Mesa.query.all()
     productos = Producto.query.all()
     
-    # Diccionario para consultar pedidos pendientes por mesa en la vista
     pedidos_activos = {p.mesa_id: p for p in Pedido.query.filter_by(estado='Pendiente').all()}
     
     return render_template('index.html', 
@@ -100,8 +101,9 @@ def agregar_producto():
 @login_required
 def crear_pedido(mesa_id):
     total = float(request.form.get('total', 0))
+    detalle = request.form.get('detalle', '')
     if total > 0:
-        nuevo_pedido = Pedido(mesa_id=mesa_id, total=total, estado='Pendiente')
+        nuevo_pedido = Pedido(mesa_id=mesa_id, total=total, detalle=detalle, estado='Pendiente')
         db.session.add(nuevo_pedido)
         
         mesa = Mesa.query.get(mesa_id)
@@ -111,7 +113,6 @@ def crear_pedido(mesa_id):
         db.session.commit()
     return redirect(url_for('index'))
 
-# RUTA CORREGIDA: Acepta GET y POST para evitar el error de método
 @app.route('/pagar-pedido/<int:mesa_id>', methods=['GET', 'POST'])
 @login_required
 def pagar_pedido(mesa_id):
