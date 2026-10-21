@@ -24,23 +24,23 @@
         .form-row button { background: #2a9d8f; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; }
         .form-row button:hover { background: #21867a; }
         .btn-producto { background: #457b9d !important; }
-        .btn-producto:hover { background: #1d3557 !important; }
 
-        .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; margin-bottom: 30px; }
         .item-card { background: white; border: 2px solid #2a9d8f; border-radius: 8px; padding: 15px; text-align: center; transition: 0.2s; }
         .item-card h4 { margin: 0 0 5px 0; color: #2a9d8f; font-size: 16px; }
         .item-card p { margin: 5px 0; font-size: 13px; color: #6c757d; }
         .badge-libre { font-size: 12px; background: #e9f5f3; padding: 3px 8px; border-radius: 4px; color: #2a9d8f; font-weight: bold; display: inline-block; margin-bottom: 10px; }
         .badge-ocupado { font-size: 12px; background: #fde8e8; padding: 3px 8px; border-radius: 4px; color: #e63946; font-weight: bold; display: inline-block; margin-bottom: 10px; }
         
-        .product-card { border-color: #457b9d; }
+        .product-card { border-color: #457b9d; cursor: pointer; }
+        .product-card:hover { transform: translateY(-3px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         .product-card h4 { color: #457b9d; }
         .product-card span { font-size: 12px; background: #edf2f7; padding: 3px 8px; border-radius: 4px; color: #457b9d; font-weight: bold; }
 
-        .order-form { margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px; display: flex; flex-direction: column; gap: 6px; }
-        .order-form input { padding: 6px; font-size: 12px; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; }
-        .btn-orden { background: #e63946; color: white; border: none; padding: 6px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
-        .btn-pagar { background: #2a9d8f; color: white; border: none; padding: 6px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; width: 100%; margin-top: 5px; }
+        .comanda-box { background: #f1f3f5; border: 1px dashed #ccc; border-radius: 6px; padding: 8px; margin: 10px 0; font-size: 12px; min-height: 40px; text-align: left; }
+        .btn-orden { background: #e63946; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; width: 100%; }
+        .btn-pagar { background: #2a9d8f; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; width: 100%; margin-top: 5px; }
+        .btn-limpiar { background: #6c757d; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; margin-top: 4px; }
     </style>
 </head>
 <body>
@@ -101,8 +101,10 @@
         </div>
     </div>
 
-    <!-- Gestión de Mesas y Pedidos -->
-    <div class="section-title">🪑 Distribución de Mesas y Toma de Pedidos</div>
+    <!-- Gestión de Mesas y Toma de Pedidos -->
+    <div class="section-title">🪑 Distribución de Mesas y Comandero Visual</div>
+    <p style="font-size: 13px; color: #6c757d; margin-top: -10px;">Selecciona una mesa libre haciendo clic en sus productos abajo para armar la comanda.</p>
+    
     <div class="grid-container">
         {% if mesas %}
             {% for mesa in mesas %}
@@ -112,17 +114,24 @@
                 
                 {% if mesa.estado == 'Libre' %}
                     <span class="badge-libre">Estado: Libre</span>
-                    <!-- Formulario para abrir pedido rápido -->
-                    <form action="/crear-pedido/{{ mesa.id }}" method="POST" class="order-form">
-                        <input type="number" step="0.01" name="total" placeholder="Total Consumo (S/)" required>
-                        <button type="submit" class="btn-orden">Abrir Pedido</button>
+                    <form action="/crear-pedido/{{ mesa.id }}" method="POST" id="form-mesa-{{ mesa.id }}">
+                        <div class="comanda-box" id="comanda-{{ mesa.id }}">
+                            <em>Haz clic en los productos del menú para agregar...</em>
+                        </div>
+                        <input type="hidden" name="total" id="total-{{ mesa.id }}" value="0">
+                        <input type="hidden" name="detalle" id="detalle-{{ mesa.id }}" value="">
+                        <p style="font-weight: bold; margin: 5px 0;">Total: S/ <span id="label-total-{{ mesa.id }}">0.00</span></p>
+                        <button type="submit" class="btn-orden">Confirmar Pedido</button>
+                        <button type="button" class="btn-limpiar" onclick="limpiarComanda('{{ mesa.id }}')">Vaciar</button>
                     </form>
                 {% else %}
                     <span class="badge-ocupado">Estado: Ocupado</span>
                     {% if mesa.id in pedidos_activos %}
-                        <p style="color: #e63946; font-weight: bold; margin: 4px 0;">Deuda: S/ {{ "%.2f"|format(pedidos_activos[mesa.id].total) }}</p>
+                        <p style="color: #e63946; font-weight: bold; margin: 4px 0;">Total: S/ {{ "%.2f"|format(pedidos_activos[mesa.id].total) }}</p>
+                        {% if pedidos_activos[mesa.id].detalle %}
+                            <div class="comanda-box"><strong>Detalle:</strong><br>{{ pedidos_activos[mesa.id].detalle }}</div>
+                        {% endif %}
                     {% endif %}
-                    <!-- Botón para cobrar y liberar mesa -->
                     <form action="/pagar-pedido/{{ mesa.id }}" method="POST">
                         <button type="submit" class="btn-pagar">Cobrar y Liberar</button>
                     </form>
@@ -134,12 +143,23 @@
         {% endif %}
     </div>
 
-    <!-- Catálogo de Productos Registrados -->
-    <div class="section-title">📋 Menú y Productos Disponibles</div>
+    <!-- Catálogo de Productos Disponibles -->
+    <div class="section-title">📋 Menú (Haz clic en un producto para agregarlo a la mesa activa)</div>
+    <div style="margin-bottom: 10px;">
+        <label style="font-size: 14px; font-weight: bold;">Mesa Seleccionada: </label>
+        <select id="mesa-activa-select" style="padding: 6px; font-size: 14px; border-radius: 4px; border: 1px solid #ccc;">
+            {% for mesa in mesas %}
+                {% if mesa.estado == 'Libre' %}
+                    <option value="{{ mesa.id }}">{{ mesa.numero }} ({{ mesa.salon }})</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+    </div>
+
     <div class="grid-container">
         {% if productos %}
             {% for prod in productos %}
-            <div class="item-card product-card">
+            <div class="item-card product-card" onclick="agregarProductoAComanda('{{ prod.nombre }}', {{ prod.precio }})">
                 <h4>{{ prod.nombre }}</h4>
                 <p>Precio: <strong>S/ {{ "%.2f"|format(prod.precio) }}</strong></p>
                 <span>Categoría: {{ prod.categoria }}</span>
@@ -149,6 +169,64 @@
             <p style="grid-column: 1 / -1; color: #6c757d; background: white; padding: 20px; border-radius: 8px; text-align: center;">No hay productos registrados en el menú todavía.</p>
         {% endif %}
     </div>
+
+    <script>
+        // Lógica JS para acumular productos por mesa
+        const comandas = {};
+
+        function agregarProductoAComanda(nombre, precio) {
+            const mesaSelect = document.getElementById('mesa-activa-select');
+            if (!mesaSelect || !mesaSelect.value) {
+                alert('Selecciona una mesa libre primero para asignarle el producto.');
+                return;
+            }
+            
+            const mesaId = mesaSelect.value;
+            if (!comandas[mesaId]) {
+                comandas[mesaId] = { total: 0, items: [] };
+            }
+
+            comandas[mesaId].items.push({ nombre, precio });
+            comandas[mesaId].total += precio;
+
+            actualizarVistaComanda(mesaId);
+        }
+
+        function actualizarVistaComanda(mesaId) {
+            const box = document.getElementById(`comanda-${mesaId}`);
+            const totalInput = document.getElementById(`total-${mesaId}`);
+            const detalleInput = document.getElementById(`detalle-${mesaId}`);
+            const labelTotal = document.getElementById(`label-total-${mesaId}`);
+
+            if (!box) return;
+
+            const data = comandas[mesaId];
+            if (data.items.length === 0) {
+                box.innerHTML = '<em>Haz clic en los productos del menú para agregar...</em>';
+                totalInput.value = 0;
+                detalleInput.value = '';
+                labelTotal.innerText = '0.00';
+            } else {
+                let html = '<ul>';
+                let detalleTexto = [];
+                data.items.forEach(item => {
+                    html += `<li>${item.nombre} - S/ ${item.precio.toFixed(2)}</li>`;
+                    detalleTexto.push(`${item.nombre} (S/ ${item.precio.toFixed(2)})`);
+                });
+                html += '</ul>';
+                
+                box.innerHTML = html;
+                totalInput.value = data.total.toFixed(2);
+                detalleInput.value = detalleTexto.join(', ');
+                labelTotal.innerText = data.total.toFixed(2);
+            }
+        }
+
+        function limpiarComanda(mesaId) {
+            comandas[mesaId] = { total: 0, items: [] };
+            actualizarVistaComanda(mesaId);
+        }
+    </script>
 
 </body>
 </html>
